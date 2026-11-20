@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanmavi 3D Printing Services | FDM Prototyping & Parts (Ahmedabad)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#FF6B00',
+                            cyan: '#00F2FE',
+                            dark: '#0A0E17',
+                            card: '#121824',
+                            border: '#1E293B',
+                            accent: '#38BDF8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #080C14;
+            color: #F1F5F9;
+        }
+
+        .glass-card {
+            background: rgba(18, 24, 36, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card-hover:hover {
+            border-color: rgba(255, 107, 0, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px -10px rgba(255, 107, 0, 0.15);
+        }
+
+        .gradient-text-orange {
+            background: linear-gradient(135deg, #FF6B00 0%, #FFA800 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-cyan {
+            background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: #1E293B;
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #FF6B00;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 107, 0, 0.6);
+            transition: transform 0.1s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        /* Grid Background Pattern */
+        .grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        /* Toast notification */
+        #toast {
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s infinite alternate;
+        }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 15px rgba(255, 107, 0, 0.2); }
+            100% { box-shadow: 0 0 25px rgba(255, 107, 0, 0.5); }
+        }
+    </style>
+</head>
+<body class="grid-pattern min-h-screen text-slate-100 selection:bg-brand-orange selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 border border-brand-orange/40 text-white px-5 py-4 rounded-xl shadow-2xl">
+        <div id="toast-icon" class="w-8 h-8 rounded-full bg-brand-orange/20 text-brand-orange flex items-center justify-center font-bold">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <div id="toast-title" class="font-bold text-sm">Success</div>
+            <div id="toast-msg" class="text-xs text-slate-400">Quote copied to clipboard!</div>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-orange to-amber-600 flex items-center justify-center text-white shadow-lg shadow-brand-orange/30 group-hover:rotate-6 transition-transform">
+                        <i class="fa-solid fa-cube text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
+                            Sanmavi<span class="gradient-text-orange">3D</span>
+                        </span>
+                        <span class="block text-[10px] text-slate-400 font-mono tracking-wider uppercase">Ahmedabad • FDM Printing</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
+                    <a href="#materials" class="hover:text-brand-orange transition-colors">Materials & Pricing</a>
+                    <a href="#calculator" class="hover:text-brand-orange transition-colors">Cost Calculator</a>
+                    <a href="#workflow" class="hover:text-brand-orange transition-colors">How It Works</a>
+                    <a href="#capabilities" class="hover:text-brand-orange transition-colors">Technical Specs</a>
+                    <a href="#upload" class="hover:text-brand-orange transition-colors">Request Quote</a>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="hidden sm:flex items-center gap-3">
+                    <a href="https://api.whatsapp.com/send?phone=919767210276&text=Hi%20Sanmavi3D,%20I%20have%20a%203D%20printing%20inquiry." 
+                       target="_blank"
+                       class="flex items-center gap-2 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        <span>+91 9767210276</span>
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden text-slate-400 hover:text-white text-2xl p-2 focus:outline-none">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-6 space-y-3">
+            <a href="#materials" class="block text-slate-300 hover:text-brand-orange py-2">Materials & Pricing</a>
+            <a href="#calculator" class="block text-slate-300 hover:text-brand-orange py-2">Cost Calculator</a>
+            <a href="#workflow" class="block text-slate-300 hover:text-brand-orange py-2">How It Works</a>
+            <a href="#capabilities" class="block text-slate-300 hover:text-brand-orange py-2">Technical Specs</a>
+            <a href="#upload" class="block text-slate-300 hover:text-brand-orange py-2">Request Quote</a>
+            <div class="pt-2">
+                <a href="https://api.whatsapp.com/send?phone=919767210276&text=Hi%20Sanmavi3D,%20I%20have%20a%203D%20printing%20inquiry." 
+                   target="_blank" 
+                   class="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-xl font-bold">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Contact on WhatsApp
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-32">
+        <!-- Ambient background glows -->
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-brand-orange/15 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute top-1/3 right-10 w-[400px] h-[250px] bg-brand-cyan/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Hero Text Left -->
+                <div class="lg:col-span-7 space-y-8 text-center lg:text-left">
+                    
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 border border-brand-orange/30 text-slate-300 text-xs sm:text-sm font-mono">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>FDM Prototyping Hub • Ahmedabad, Gujarat</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none">
+                        Precision FDM 3D Printing <br class="hidden sm:inline">
+                        <span class="gradient-text-orange">Starting at ₹12/Gram</span>
+                    </h1>
+
+                    <p class="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+                        Turn your STL & STEP CAD files into industrial-grade plastic prototypes and end-use parts. High precision, zero minimum order quantity, and fast turnaround for engineers, students, and businesses across India.
+                    </p>
+
+                    <!-- Quick Highlights Badges -->
+                    <div class="grid grid-cols-3 gap-3 max-w-lg mx-auto lg:mx-0">
+                        <div class="glass-card p-3 rounded-xl border border-slate-800 text-center">
+                            <div class="text-brand-orange font-bold text-lg font-mono">PLA</div>
+                            <div class="text-xs text-slate-400">₹12 / Gram</div>
+                        </div>
+                        <div class="glass-card p-3 rounded-xl border border-slate-800 text-center">
+                            <div class="text-brand-cyan font-bold text-lg font-mono">PETG</div>
+                            <div class="text-xs text-slate-400">₹18 / Gram</div>
+                        </div>
+                        <div class="glass-card p-3 rounded-xl border border-slate-800 text-center">
+                            <div class="text-amber-400 font-bold text-lg font-mono">TPU</div>
+                            <div class="text-xs text-slate-400">₹18 / Gram</div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                        <a href="#calculator" 
+                           class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-brand-orange to-amber-600 text-white font-bold text-base shadow-xl shadow-brand-orange/25 hover:shadow-brand-orange/40 hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3">
+                            <i class="fa-solid fa-calculator text-lg"></i>
+                            Calculate Instant Quote
+                        </a>
+                        <a href="#materials" 
+                           class="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-200 font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2">
+                            <span>Explore Materials</span>
+                            <i class="fa-solid fa-arrow-down text-sm text-slate-400"></i>
+                        </a>
+                    </div>
+
+                    <!-- Trust Stats -->
+                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-center lg:justify-start gap-8 text-xs text-slate-400 font-mono">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-microchip text-brand-orange"></i> ±0.15mm Tolerance
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-truck-fast text-brand-cyan"></i> 24-48h Dispatch
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> 100% Inspected
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Hero 3D Interactive Canvas Right -->
+                <div class="lg:col-span-5 relative">
+                    <div class="glass-card rounded-2xl border border-slate-800/80 p-4 relative overflow-hidden pulse-glow">
+                        <!-- Canvas Header Tag -->
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80 text-xs font-mono text-slate-400 mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                                <span class="text-white font-bold">FDM Nozzle Simulator</span>
+                            </div>
+                            <span>3D Interactive View</span>
+                        </div>
+
+                        <!-- Three.js Canvas Container -->
+                        <div id="three-container" class="w-full h-[320px] sm:h-[380px] rounded-xl bg-slate-950 relative overflow-hidden cursor-grab">
+                            <div class="absolute bottom-3 right-3 z-10 text-[11px] text-slate-400 bg-slate-900/80 backdrop-blur px-3 py-1 rounded-md border border-slate-800 pointer-events-none">
+                                <i class="fa-solid fa-hand-pointer mr-1 text-brand-orange"></i> Drag to rotate
+                            </div>
+                        </div>
+
+                        <!-- Live Printer Status Bar -->
+                        <div class="mt-3 bg-slate-900/90 rounded-xl p-3 border border-slate-800 flex items-center justify-between text-xs font-mono">
+                            <div>
+                                <span class="text-slate-400">Nozzle Temp:</span>
+                                <span class="text-brand-orange font-bold ml-1">215°C</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">Bed:</span>
+                                <span class="text-brand-cyan font-bold ml-1">60°C</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">Layer:</span>
+                                <span class="text-emerald-400 font-bold ml-1">0.20mm</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- Section 2: Material Showcase & Technical Comparison Cards -->
+    <section id="materials" class="py-20 relative bg-slate-950/60 border-y border-slate-800/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+                <h2 class="text-xs font-mono font-semibold uppercase tracking-widest text-brand-orange">Material Selection Guide</h2>
+                <h3 class="text-3xl sm:text-4xl font-extrabold text-white">Engineered Polymers for Every Project</h3>
+                <p class="text-slate-400 text-base">
+                    We offer three versatile FDM thermoplastic materials with transparent per-gram pricing. Select the best match for your structural or aesthetic requirements.
+                </p>
+            </div>
+
+            <!-- 3 Material Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <!-- PLA CARD -->
+                <div class="glass-card glass-card-hover rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-brand-orange/10 rounded-full blur-2xl pointer-events-none"></div>
+                    
+                    <div>
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                Most Popular
+                            </span>
+                            <i class="fa-solid fa-cube text-2xl text-amber-400"></i>
+                        </div>
+
+                        <h4 class="text-2xl font-bold text-white mb-1">PLA Plastic</h4>
+                        <p class="text-xs text-slate-400 font-mono mb-4">Polylactic Acid</p>
+
+                        <!-- Price Tag -->
+                        <div class="mb-6 p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <div class="text-xs text-slate-400 uppercase font-mono">Printing Rate</div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-3xl font-extrabold text-white">₹12</span>
+                                <span class="text-slate-400 font-mono text-sm">/ gram</span>
+                            </div>
+                        </div>
+
+                        <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                            Best for rapid visual prototypes, architectural scale models, detailed figurines, and display parts. Crisp surface finish with high dimensional accuracy.
+                        </p>
+
+                        <!-- Material Property Bars -->
+                        <div class="space-y-3 font-mono text-xs mb-8">
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Rigidity / Hardness</span>
+                                    <span class="text-white">9/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-amber-400 rounded-full" style="width: 90%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Flexibility</span>
+                                    <span class="text-white">2/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-amber-400 rounded-full" style="width: 20%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Impact / Toughness</span>
+                                    <span class="text-white">6/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-amber-400 rounded-full" style="width: 60%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Heat Resistance (~55°C)</span>
+                                    <span class="text-white">5/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-amber-400 rounded-full" style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="selectMaterialInCalc('PLA')" class="w-full py-3 rounded-xl bg-slate-900 border border-amber-500/30 text-amber-400 font-bold hover:bg-amber-500 hover:text-slate-950 transition-colors flex items-center justify-center gap-2">
+                        <span>Select PLA in Calculator</span>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- PETG CARD -->
+                <div class="glass-card glass-card-hover rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-brand-cyan/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div>
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                                Engineering Grade
+                            </span>
+                            <i class="fa-solid fa-gears text-2xl text-cyan-400"></i>
+                        </div>
+
+                        <h4 class="text-2xl font-bold text-white mb-1">PETG Plastic</h4>
+                        <p class="text-xs text-slate-400 font-mono mb-4">Polyethylene Terephthalate Glycol</p>
+
+                        <!-- Price Tag -->
+                        <div class="mb-6 p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <div class="text-xs text-slate-400 uppercase font-mono">Printing Rate</div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-3xl font-extrabold text-white">₹18</span>
+                                <span class="text-slate-400 font-mono text-sm">/ gram</span>
+                            </div>
+                        </div>
+
+                        <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                            Best for functional mechanical parts, outdoor enclosures, drone components, and mounting brackets. High impact strength, chemical & UV resistance.
+                        </p>
+
+                        <!-- Material Property Bars -->
+                        <div class="space-y-3 font-mono text-xs mb-8">
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Rigidity / Hardness</span>
+                                    <span class="text-white">8/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-cyan-400 rounded-full" style="width: 80%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Flexibility</span>
+                                    <span class="text-white">4/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-cyan-400 rounded-full" style="width: 40%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Impact / Toughness</span>
+                                    <span class="text-white">9/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-cyan-400 rounded-full" style="width: 90%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Heat Resistance (~75°C)</span>
+                                    <span class="text-white">8/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-cyan-400 rounded-full" style="width: 80%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="selectMaterialInCalc('PETG')" class="w-full py-3 rounded-xl bg-slate-900 border border-cyan-500/30 text-cyan-400 font-bold hover:bg-cyan-500 hover:text-slate-950 transition-colors flex items-center justify-center gap-2">
+                        <span>Select PETG in Calculator</span>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- TPU CARD -->
+                <div class="glass-card glass-card-hover rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div>
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                Rubber-Like Flexible
+                            </span>
+                            <i class="fa-solid fa-arrows-spin text-2xl text-emerald-400"></i>
+                        </div>
+
+                        <h4 class="text-2xl font-bold text-white mb-1">TPU Rubber</h4>
+                        <p class="text-xs text-slate-400 font-mono mb-4">Thermoplastic Polyurethane (95A)</p>
+
+                        <!-- Price Tag -->
+                        <div class="mb-6 p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <div class="text-xs text-slate-400 uppercase font-mono">Printing Rate</div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-3xl font-extrabold text-white">₹18</span>
+                                <span class="text-slate-400 font-mono text-sm">/ gram</span>
+                            </div>
+                        </div>
+
+                        <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                            Best for custom rubber gaskets, shock-absorbing bumpers, phone cases, flexible hinges, vibration dampers, and protective boots.
+                        </p>
+
+                        <!-- Material Property Bars -->
+                        <div class="space-y-3 font-mono text-xs mb-8">
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Rigidity / Hardness</span>
+                                    <span class="text-white">3/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-emerald-400 rounded-full" style="width: 30%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Flexibility / Stretch</span>
+                                    <span class="text-white">10/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-emerald-400 rounded-full" style="width: 100%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Impact / Abrasion</span>
+                                    <span class="text-white">10/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-emerald-400 rounded-full" style="width: 100%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-slate-400 mb-1">
+                                    <span>Heat Resistance (~80°C)</span>
+                                    <span class="text-white">7/10</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-emerald-400 rounded-full" style="width: 70%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="selectMaterialInCalc('TPU')" class="w-full py-3 rounded-xl bg-slate-900 border border-emerald-500/30 text-emerald-400 font-bold hover:bg-emerald-500 hover:text-slate-950 transition-colors flex items-center justify-center gap-2">
+                        <span>Select TPU in Calculator</span>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Interactive Instant Cost Calculator -->
+    <section id="calculator" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-14">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/30 text-brand-orange text-xs font-mono font-bold">
+                    <i class="fa-solid fa-calculator"></i> Real-time Price Estimation
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white">Instant FDM Cost Calculator</h2>
+                <p class="text-slate-400 text-base">
+                    Configure your material, part weight, and quantity to calculate your transparent estimate instantly.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-3xl border border-slate-800 p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                    
+                    <!-- Calculator Inputs (Left Column) -->
+                    <div class="lg:col-span-7 space-y-8">
+                        
+                        <!-- 1. Select Material -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-200 mb-3 flex items-center justify-between">
+                                <span>1. Select FDM Material</span>
+                                <span id="calc-selected-rate" class="text-xs font-mono text-brand-orange">Rate: ₹12 / gram</span>
+                            </label>
+                            
+                            <div class="grid grid-cols-3 gap-3">
+                                <label class="material-radio-btn cursor-pointer">
+                                    <input type="radio" name="material" value="PLA" checked onchange="calculateQuote()" class="sr-only peer">
+                                    <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 peer-checked:border-brand-orange peer-checked:bg-brand-orange/10 transition-all text-center">
+                                        <div class="font-bold text-white text-base">PLA</div>
+                                        <div class="text-xs text-brand-orange font-mono mt-1">₹12 / g</div>
+                                    </div>
+                                </label>
+
+                                <label class="material-radio-btn cursor-pointer">
+                                    <input type="radio" name="material" value="PETG" onchange="calculateQuote()" class="sr-only peer">
+                                    <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 peer-checked:border-brand-cyan peer-checked:bg-brand-cyan/10 transition-all text-center">
+                                        <div class="font-bold text-white text-base">PETG</div>
+                                        <div class="text-xs text-brand-cyan font-mono mt-1">₹18 / g</div>
+                                    </div>
+                                </label>
+
+                                <label class="material-radio-btn cursor-pointer">
+                                    <input type="radio" name="material" value="TPU" onchange="calculateQuote()" class="sr-only peer">
+                                    <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 peer-checked:border-emerald-400 peer-checked:bg-emerald-400/10 transition-all text-center">
+                                        <div class="font-bold text-white text-base">TPU</div>
+                                        <div class="text-xs text-emerald-400 font-mono mt-1">₹18 / g</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 2. Part Weight (g) Slider + Input -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label for="weight-num" class="text-sm font-semibold text-slate-200">
+                                    2. Part Weight per Piece (Grams)
+                                </label>
+                                <div class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700">
+                                    <input type="number" id="weight-num" min="1" max="2000" value="45" oninput="syncWeightSlider(this.value)" class="w-16 bg-transparent text-right font-mono font-bold text-brand-orange text-base focus:outline-none">
+                                    <span class="text-slate-400 text-xs font-mono">grams</span>
+                                </div>
+                            </div>
+
+                            <input type="range" id="weight-slider" min="1" max="1000" value="45" oninput="syncWeightNum(this.value)" class="w-full">
+
+                            <!-- Quick Preset Weight Buttons -->
+                            <div class="flex items-center gap-2 pt-1 text-xs font-mono">
+                                <span class="text-slate-400">Quick Presets:</span>
+                                <button onclick="setWeight(15)" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:border-brand-orange">15g</button>
+                                <button onclick="setWeight(50)" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:border-brand-orange">50g</button>
+                                <button onclick="setWeight(120)" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:border-brand-orange">120g</button>
+                                <button onclick="setWeight(250)" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:border-brand-orange">250g</button>
+                                <button onclick="setWeight(500)" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:border-brand-orange">500g</button>
+                            </div>
+                        </div>
+
+                        <!-- 3. Quantity Stepper -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-200 mb-2">
+                                    3. Quantity (Units)
+                                </label>
+                                <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl overflow-hidden p-1 w-fit">
+                                    <button onclick="changeQty(-1)" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:bg-slate-800 rounded-lg text-lg font-bold transition-colors">
+                                        -
+                                    </button>
+                                    <input type="number" id="qty-input" min="1" max="500" value="1" onchange="calculateQuote()" class="w-16 bg-transparent text-center font-mono font-bold text-white text-base focus:outline-none">
+                                    <button onclick="changeQty(1)" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:bg-slate-800 rounded-lg text-lg font-bold transition-colors">
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Layer Height / Print Infill Presets -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-200 mb-2">
+                                    Infill / Detail Preset
+                                </label>
+                                <select id="infill-preset" onchange="calculateQuote()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-200 font-mono focus:outline-none focus:border-brand-orange">
+                                    <option value="standard">Standard Prototyping (0.20mm / 20% Infill)</option>
+                                    <option value="high-detail">High Detail (0.12mm / 30% Infill)</option>
+                                    <option value="heavy-duty">Heavy Duty Structural (0.20mm / 50% Infill)</option>
+                                    <option value="solid">Solid Functional Part (0.20mm / 100% Infill)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Bulk Volume Discount Banner -->
+                        <div id="discount-banner" class="hidden p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono flex items-center gap-2">
+                            <i class="fa-solid fa-tags text-sm"></i>
+                            <span id="discount-text">Bulk Volume Discount Applied!</span>
+                        </div>
+
+                    </div>
+
+                    <!-- Live Breakdown Receipt (Right Column) -->
+                    <div class="lg:col-span-5 bg-slate-950/90 rounded-2xl border border-slate-800 p-6 flex flex-col justify-between space-y-6">
+                        
+                        <div>
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-receipt text-brand-orange"></i> Quote Summary
+                                </h3>
+                                <span class="text-xs font-mono text-slate-400">Sanmavi3D Rate Card</span>
+                            </div>
+
+                            <div class="space-y-3 py-4 text-sm font-mono border-b border-slate-800/80">
+                                <div class="flex justify-between text-slate-400">
+                                    <span>Selected Material:</span>
+                                    <span id="summary-material" class="text-white font-bold">PLA</span>
+                                </div>
+                                <div class="flex justify-between text-slate-400">
+                                    <span>Material Rate:</span>
+                                    <span id="summary-rate" class="text-slate-200">₹12 / gram</span>
+                                </div>
+                                <div class="flex justify-between text-slate-400">
+                                    <span>Weight per Unit:</span>
+                                    <span id="summary-weight" class="text-slate-200">45 grams</span>
+                                </div>
+                                <div class="flex justify-between text-slate-400">
+                                    <span>Cost per Unit:</span>
+                                    <span id="summary-unit-cost" class="text-slate-200">₹540.00</span>
+                                </div>
+                                <div class="flex justify-between text-slate-400">
+                                    <span>Total Quantity:</span>
+                                    <span id="summary-qty" class="text-slate-200">1 Unit</span>
+                                </div>
+                                <div id="summary-discount-row" class="hidden flex justify-between text-emerald-400">
+                                    <span>Bulk Discount:</span>
+                                    <span id="summary-discount-val">-₹0.00</span>
+                                </div>
+                                <div class="flex justify-between text-slate-400">
+                                    <span>Est. Print Time:</span>
+                                    <span id="summary-time" class="text-amber-400">~2.5 Hours</span>
+                                </div>
+                            </div>
+
+                            <!-- Total Price Display -->
+                            <div class="pt-4 space-y-1">
+                                <div class="text-xs text-slate-400 uppercase font-mono">Estimated Total Cost</div>
+                                <div class="flex items-baseline gap-2">
+                                    <span id="summary-grand-total" class="text-4xl sm:text-5xl font-extrabold text-white gradient-text-orange">₹540</span>
+                                    <span class="text-xs text-slate-400 font-mono">INR (Taxes extra if applicable)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="space-y-3">
+                            <button onclick="sendWhatsAppQuote()" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-lg"></i>
+                                <span>Send Quote via WhatsApp</span>
+                            </button>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="copyQuoteToClipboard()" class="py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 font-medium text-xs transition-colors flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-copy"></i>
+                                    <span>Copy Quote</span>
+                                </button>
+                                
+                                <a id="email-quote-btn" href="mailto:sonawanem749@gmail.com?subject=3D%20Printing%20Quote%20Inquiry" class="py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 font-medium text-xs transition-colors flex items-center justify-center gap-2 text-center">
+                                    <i class="fa-solid fa-envelope"></i>
+                                    <span>Email Inquiry</span>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Section 4: Drag & Drop File Upload / CAD Quote Inquiry -->
+    <section id="upload" class="py-20 relative bg-slate-950/60 border-t border-slate-800/60">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-2xl mx-auto space-y-4 mb-12">
+                <h2 class="text-xs font-mono font-semibold uppercase tracking-widest text-brand-cyan">Direct CAD Upload</h2>
+                <h3 class="text-3xl sm:text-4xl font-extrabold text-white">Have a CAD File Ready?</h3>
+                <p class="text-slate-400 text-base">
+                    Upload your 3D geometry file (.STL, .STEP, .OBJ) for accurate slice analysis and a direct quote from our technical team.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-3xl border border-slate-800 p-6 sm:p-10">
+                <form id="quote-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                    
+                    <!-- Drag & Drop Box -->
+                    <div id="drop-zone" onclick="document.getElementById('file-input').click()" class="border-2 border-dashed border-slate-700 hover:border-brand-orange bg-slate-900/50 hover:bg-slate-900 rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-200">
+                        <input type="file" id="file-input" accept=".stl,.step,.stp,.obj" onchange="handleFileSelect(this.files)" class="hidden">
+                        
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+
+                        <div id="drop-text" class="space-y-1">
+                            <p class="text-base font-bold text-white">Click or drag & drop 3D CAD files here</p>
+                            <p class="text-xs text-slate-400 font-mono">Supports .STL, .STEP, .OBJ (Up to 50MB)</p>
+                        </div>
+
+                        <!-- Selected File Info Display -->
+                        <div id="selected-file-card" class="hidden mt-4 p-4 rounded-xl bg-slate-800/90 border border-slate-700 max-w-md mx-auto text-left flex items-center justify-between">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <i class="fa-solid fa-file-code text-brand-cyan text-xl"></i>
+                                <div class="truncate">
+                                    <div id="file-name" class="font-mono text-sm font-bold text-white truncate">part_model.stl</div>
+                                    <div id="file-size" class="text-xs text-slate-400 font-mono">3.4 MB • Auto Calculated Est. Weight ~52g</div>
+                                </div>
+                            </div>
+                            <span class="text-xs text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2 py-1 rounded">Ready</span>
+                        </div>
+                    </div>
+
+                    <!-- Contact Details Form Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                        <div>
+                            <label class="block text-xs font-mono uppercase text-slate-400 mb-2">Your Name *</label>
+                            <input type="text" id="cust-name" required placeholder="e.g. Rahul Sharma" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-mono uppercase text-slate-400 mb-2">Phone / WhatsApp *</label>
+                            <input type="tel" id="cust-phone" required placeholder="+91 98765 43210" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-mono uppercase text-slate-400 mb-2">Email Address *</label>
+                            <input type="email" id="cust-email" required placeholder="rahul@example.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-mono uppercase text-slate-400 mb-2">Delivery City / Location</label>
+                            <input type="text" id="cust-city" placeholder="e.g. Ahmedabad, Surat, Mumbai" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono uppercase text-slate-400 mb-2">Special Instructions / Requirements</label>
+                        <textarea id="cust-notes" rows="3" placeholder="Specify color preference, infill density, post-processing or assembly notes..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-brand-orange to-amber-600 hover:from-amber-600 hover:to-brand-orange text-white font-bold text-base shadow-lg shadow-brand-orange/20 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Submit CAD File for Formal Quote</span>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Section 5: Workflow & Technical Guidelines -->
+    <section id="workflow" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+                <h2 class="text-xs font-mono font-semibold uppercase tracking-widest text-brand-orange">Seamless Process</h2>
+                <h3 class="text-3xl sm:text-4xl font-extrabold text-white">How It Works in 3 Simple Steps</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-card rounded-2xl p-8 relative border border-slate-800">
+                    <div class="w-12 h-12 rounded-xl bg-brand-orange/10 border border-brand-orange/30 text-brand-orange flex items-center justify-center font-mono font-bold text-xl mb-6">01</div>
+                    <h4 class="text-xl font-bold text-white mb-3">Upload your CAD Design</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Send us your STL, STEP, or OBJ model through our website, WhatsApp, or email. We verify model slice geometry for printability.
+                    </p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-8 relative border border-slate-800">
+                    <div class="w-12 h-12 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 text-brand-cyan flex items-center justify-center font-mono font-bold text-xl mb-6">02</div>
+                    <h4 class="text-xl font-bold text-white mb-3">Select Material & Infill</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Choose PLA (₹12/g), PETG (₹18/g), or TPU (₹18/g). Pick layer height (0.12mm to 0.28mm) and infill density according to strength needs.
+                    </p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-8 relative border border-slate-800">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-mono font-bold text-xl mb-6">03</div>
+                    <h4 class="text-xl font-bold text-white mb-3">Precision Print & Express Dispatch</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        We print on calibrated high-precision FDM 3D printers, inspect part dimensions, remove support structures, and ship to your doorstep.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Technical Capabilities Spec Sheet -->
+            <div id="capabilities" class="mt-20 glass-card rounded-3xl p-8 sm:p-12 border border-slate-800">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-slate-800">
+                    <div>
+                        <h4 class="text-2xl font-bold text-white">Technical Print Specifications</h4>
+                        <p class="text-slate-400 text-sm font-mono mt-1">Sanmavi 3D Printing Services Industrial Capabilities</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-md bg-slate-900 border border-slate-700 text-xs font-mono text-slate-300">.STL</span>
+                        <span class="px-3 py-1 rounded-md bg-slate-900 border border-slate-700 text-xs font-mono text-slate-300">.STEP</span>
+                        <span class="px-3 py-1 rounded-md bg-slate-900 border border-slate-700 text-xs font-mono text-slate-300">.OBJ</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 font-mono text-sm">
+                    <div class="space-y-1">
+                        <div class="text-xs text-slate-400 uppercase">Max Build Volume</div>
+                        <div class="text-lg font-bold text-white">300 × 300 × 400 mm</div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="text-xs text-slate-400 uppercase">Dimensional Accuracy</div>
+                        <div class="text-lg font-bold text-brand-orange">±0.15 mm</div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="text-xs text-slate-400 uppercase">Min Wall Thickness</div>
+                        <div class="text-lg font-bold text-white">0.8 mm</div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="text-xs text-slate-400 uppercase">Layer Resolution</div>
+                        <div class="text-lg font-bold text-brand-cyan">0.10 mm - 0.28 mm</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800/80 pt-16 pb-12 text-slate-400 text-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80">
+                
+                <div class="md:col-span-5 space-y-4">
+                    <a href="#" class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-brand-orange flex items-center justify-center text-white">
+                            <i class="fa-solid fa-cube text-xl"></i>
+                        </div>
+                        <span class="text-xl font-extrabold text-white tracking-tight">
+                            Sanmavi<span class="gradient-text-orange">3D</span>
+                        </span>
+                    </a>
+                    <p class="text-slate-400 text-sm max-w-sm leading-relaxed">
+                        Sanmavi 3D Printing Services provides high-speed, reliable FDM additive manufacturing, rapid prototyping, and custom component fabrication based in Ahmedabad, Gujarat.
+                    </p>
+                </div>
+
+                <div class="md:col-span-3 space-y-3 font-mono text-xs">
+                    <h5 class="text-white font-bold uppercase tracking-wider text-sm font-sans mb-4">Material Rates</h5>
+                    <div class="flex justify-between border-b border-slate-900 pb-2">
+                        <span>PLA Plastic</span>
+                        <span class="text-brand-orange font-bold">₹12 / gram</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-900 pb-2">
+                        <span>PETG Plastic</span>
+                        <span class="text-brand-cyan font-bold">₹18 / gram</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-900 pb-2">
+                        <span>TPU Rubber</span>
+                        <span class="text-emerald-400 font-bold">₹18 / gram</span>
+                    </div>
+                </div>
+
+                <div class="md:col-span-4 space-y-3">
+                    <h5 class="text-white font-bold uppercase tracking-wider text-sm mb-4">Contact Information</h5>
+                    <ul class="space-y-2.5 text-sm">
+                        <li class="flex items-center gap-3 text-slate-300">
+                            <i class="fa-solid fa-phone text-brand-orange"></i>
+                            <a href="tel:+919767210276" class="hover:text-white transition-colors">+91 9767210276</a>
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-300">
+                            <i class="fa-brands fa-whatsapp text-emerald-400"></i>
+                            <a href="https://api.whatsapp.com/send?phone=919767210276" target="_blank" class="hover:text-white transition-colors">WhatsApp: +91 9767210276</a>
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-300">
+                            <i class="fa-solid fa-envelope text-brand-cyan"></i>
+                            <a href="mailto:sonawanem749@gmail.com" class="hover:text-white transition-colors">sonawanem749@gmail.com</a>
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-300">
+                            <i class="fa-solid fa-location-dot text-amber-400"></i>
+                            <span>Ahmedabad, Gujarat, India</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-slate-400 gap-4">
+                <div>© <span id="current-year"></span> Sanmavi 3D Printing Services. All rights reserved.</div>
+                <div>Designed for High-Precision FDM Additive Manufacturing</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Inquiry Confirmation Modal -->
+    <div id="quote-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden">
+        <div class="glass-card max-w-md w-full rounded-3xl p-8 border border-slate-700 shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl mx-auto mb-4">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white text-center mb-2">Inquiry Submitted!</h3>
+            <p class="text-slate-300 text-sm text-center mb-6">
+                Thank you for submitting your 3D CAD inquiry to Sanmavi 3D Printing Services. Our engineers will review your geometry and reply shortly.
+            </p>
+            <div id="modal-details" class="bg-slate-900 rounded-xl p-4 text-xs font-mono space-y-2 mb-6 border border-slate-800">
+                <!-- Dynamic details -->
+            </div>
+            <a id="modal-wa-btn" href="#" target="_blank" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2">
+                <i class="fa-brands fa-whatsapp text-lg"></i> Follow Up on WhatsApp Now
+            </a>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- Material Rates Configuration ---
+        const MATERIAL_RATES = {
+            'PLA': 12,
+            'PETG': 18,
+            'TPU': 18
+        };
+
+        // Current Calculator State
+        let currentCalcState = {
+            material: 'PLA',
+            weight: 45,
+            qty: 1,
+            rate: 12,
+            preset: 'standard',
+            unitCost: 540,
+            totalCost: 540,
+            discount: 0
+        };
+
+        // Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            calculateQuote();
+            initThreeJsCanvas();
+            setupMobileMenu();
+            setupDragAndDrop();
+        });
+
+        // --- Mobile Menu Toggle ---
+        function setupMobileMenu() {
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            if (btn && menu) {
+                btn.addEventListener('click', () => {
+                    menu.classList.toggle('hidden');
+                });
+            }
+        }
+
+        // --- Interactive Cost Calculator Logic ---
+        function syncWeightSlider(val) {
+            let num = parseInt(val) || 1;
+            if (num < 1) num = 1;
+            if (num > 2000) num = 2000;
+            document.getElementById('weight-slider').value = Math.min(num, 1000);
+            calculateQuote();
+        }
+
+        function syncWeightNum(val) {
+            document.getElementById('weight-num').value = val;
+            calculateQuote();
+        }
+
+        function setWeight(val) {
+            document.getElementById('weight-num').value = val;
+            document.getElementById('weight-slider').value = Math.min(val, 1000);
+            calculateQuote();
+        }
+
+        function changeQty(delta) {
+            const input = document.getElementById('qty-input');
+            let current = parseInt(input.value) || 1;
+            current += delta;
+            if (current < 1) current = 1;
+            if (current > 500) current = 500;
+            input.value = current;
+            calculateQuote();
+        }
+
+        function selectMaterialInCalc(matName) {
+            const radios = document.getElementsByName('material');
+            for (let r of radios) {
+                if (r.value === matName) {
+                    r.checked = true;
+                    break;
+                }
+            }
+            calculateQuote();
+            document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function calculateQuote() {
+            // Read Material
+            const radios = document.getElementsByName('material');
+            let selectedMat = 'PLA';
+            for (let r of radios) {
+                if (r.checked) {
+                    selectedMat = r.value;
+                    break;
+                }
+            }
+
+            const rate = MATERIAL_RATES[selectedMat] || 12;
+            const weight = Math.max(1, parseInt(document.getElementById('weight-num').value) || 1);
+            const qty = Math.max(1, parseInt(document.getElementById('qty-input').value) || 1);
+            const preset = document.getElementById('infill-preset').value;
+
+            // Unit base cost
+            let baseUnitCost = weight * rate;
+            
+            // Infill / detail multiplier adjustment
+            let multiplier = 1.0;
+            if (preset === 'high-detail') multiplier = 1.15; // +15% print time/detail
+            if (preset === 'heavy-duty') multiplier = 1.25; // +25% material density
+            if (preset === 'solid') multiplier = 1.60;     // 100% infill
+
+            let adjustedUnitCost = baseUnitCost * multiplier;
+            let subtotal = adjustedUnitCost * qty;
+
+            // Tier Bulk Discount
+            let discountPercent = 0;
+            if (qty >= 50) discountPercent = 0.15;
+            else if (qty >= 25) discountPercent = 0.10;
+            else if (qty >= 10) discountPercent = 0.05;
+
+            let discountVal = subtotal * discountPercent;
+            let grandTotal = Math.round(subtotal - discountVal);
+
+            // Estimated Time (Simulated: ~1hr base + 0.03hr per gram)
+            let printTimeHours = ((0.5 + (weight * 0.04)) * qty).toFixed(1);
+
+            // Update State
+            currentCalcState = {
+                material: selectedMat,
+                rate: rate,
+                weight: weight,
+                qty: qty,
+                preset: preset,
+                unitCost: Math.round(adjustedUnitCost),
+                totalCost: grandTotal,
+                discount: Math.round(discountVal),
+                printTime: printTimeHours
+            };
+
+            // Update DOM Elements
+            document.getElementById('calc-selected-rate').textContent = `Rate: ₹${rate} / gram`;
+            document.getElementById('summary-material').textContent = selectedMat;
+            document.getElementById('summary-rate').textContent = `₹${rate} / gram`;
+            document.getElementById('summary-weight').textContent = `${weight} grams`;
+            document.getElementById('summary-unit-cost').textContent = `₹${Math.round(adjustedUnitCost)}`;
+            document.getElementById('summary-qty').textContent = `${qty} Unit${qty > 1 ? 's' : ''}`;
+            document.getElementById('summary-time').textContent = `~${printTimeHours} Hours`;
+            document.getElementById('summary-grand-total').textContent = `₹${grandTotal.toLocaleString('en-IN')}`;
+
+            // Bulk discount UI updates
+            const discountBanner = document.getElementById('discount-banner');
+            const discountText = document.getElementById('discount-text');
+            const summaryDiscRow = document.getElementById('summary-discount-row');
+            const summaryDiscVal = document.getElementById('summary-discount-val');
+
+            if (discountPercent > 0) {
+                discountBanner.classList.remove('hidden');
+                discountText.textContent = `Bulk Discount (${discountPercent * 100}% off for ${qty}+ units) applied!`;
+                summaryDiscRow.classList.remove('hidden');
+                summaryDiscVal.textContent = `-₹${Math.round(discountVal)}`;
+            } else {
+                discountBanner.classList.add('hidden');
+                summaryDiscRow.classList.add('hidden');
+            }
+
+            // Update email mailto link
+            const emailSubject = encodeURIComponent(`3D Printing Quote Request - ${selectedMat} (${weight}g x ${qty} pcs)`);
+            const emailBody = encodeURIComponent(
+                `Hi Sanmavi3D Team,\n\nI calculated a quote on your website:\n- Material: ${selectedMat} (@ ₹${rate}/g)\n- Part Weight: ${weight}g\n- Quantity: ${qty} pcs\n- Estimated Total: ₹${grandTotal}\n\nPlease get in touch regarding file inspection and payment details.\n`
+            );
+            document.getElementById('email-quote-btn').href = `mailto:sonawanem749@gmail.com?subject=${emailSubject}&body=${emailBody}`;
+        }
+
+        // --- WhatsApp Direct Quote Generator ---
+        function sendWhatsAppQuote() {
+            const { material, rate, weight, qty, totalCost, printTime } = currentCalcState;
+            const message = `*Sanmavi 3D Printing Quote Inquiry*%0A` +
+                            `----------------------------------%0A` +
+                            `*Material:* ${material} (₹${rate}/gram)%0A` +
+                            `*Weight per part:* ${weight} grams%0A` +
+                            `*Quantity:* ${qty} unit(s)%0A` +
+                            `*Est. Total Price:* ₹${totalCost}%0A` +
+                            `*Est. Print Time:* ~${printTime} hrs%0A` +
+                            `----------------------------------%0A` +
+                            `Hi! I would like to proceed with this print order from Sanmavi3D in Ahmedabad. Please guide me on file transfer.`;
+
+            const waUrl = `https://api.whatsapp.com/send?phone=919767210276&text=${message}`;
+            window.open(waUrl, '_blank');
+        }
+
+        // --- Clipboard Copying Function ---
+        function copyQuoteToClipboard() {
+            const { material, rate, weight, qty, totalCost } = currentCalcState;
+            const textToCopy = `Sanmavi 3D Printing Services Estimate:\n` +
+                               `Material: ${material} (₹${rate}/g)\n` +
+                               `Weight: ${weight}g | Quantity: ${qty} Pcs\n` +
+                               `Total Estimated Price: ₹${totalCost}\n` +
+                               `Contact: +91 9767210276 | Ahmedabad, Gujarat`;
+
+            // Using document.execCommand('copy') for guaranteed iframe compatibility
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('Quote Copied!', 'Detailed estimate copied to clipboard.');
+            } catch (err) {
+                showToast('Copy Failed', 'Please manually select and copy text.');
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        function showToast(title, msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // --- Drag & Drop CAD Upload Mock Logic ---
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('drop-zone');
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.add('border-brand-orange', 'bg-slate-900'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-brand-orange', 'bg-slate-900'), false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFileSelect(files);
+            });
+        }
+
+        function handleFileSelect(files) {
+            if (files && files.length > 0) {
+                const file = files[0];
+                const ext = file.name.split('.').pop().toLowerCase();
+                const allowedFormats = ['stl', 'step', 'stp', 'obj'];
+
+                if (!allowedFormats.includes(ext)) {
+                    showToast('Invalid File Format', 'Only .STL, .STEP, and .OBJ formats are accepted.');
+                    return;
+                }
+
+                const card = document.getElementById('selected-file-card');
+                const fileNameElem = document.getElementById('file-name');
+                const fileSizeElem = document.getElementById('file-size');
+
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                // Simulated weight estimation from file size
+                const estWeight = Math.max(12, Math.round(file.size / 65000));
+
+                fileNameElem.textContent = file.name;
+                fileSizeElem.textContent = `${sizeMB} MB • Auto-Sliced Weight Est. ~${estWeight}g`;
+                card.classList.remove('hidden');
+
+                // Auto update calculator weight
+                setWeight(estWeight);
+                showToast('CAD File Loaded', `Calculated estimate weight: ~${estWeight}g`);
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('cust-name').value;
+            const phone = document.getElementById('cust-phone').value;
+            const email = document.getElementById('cust-email').value;
+            const city = document.getElementById('cust-city').value || 'Ahmedabad';
+
+            const modal = document.getElementById('quote-modal');
+            const modalDetails = document.getElementById('modal-details');
+            const modalWaBtn = document.getElementById('modal-wa-btn');
+
+            const refNo = 'SNM-' + Math.floor(100000 + Math.random() * 900000);
+
+            modalDetails.innerHTML = `
+                <div><span class="text-slate-400">Reference Ticket:</span> <span class="text-brand-orange font-bold">${refNo}</span></div>
+                <div><span class="text-slate-400">Customer:</span> ${name} (${phone})</div>
+                <div><span class="text-slate-400">Location:</span> ${city}</div>
+                <div><span class="text-slate-400">Config:</span> ${currentCalcState.material} • ${currentCalcState.weight}g x ${currentCalcState.qty} unit(s)</div>
+                <div><span class="text-slate-400">Est. Total:</span> <span class="text-white font-bold">₹${currentCalcState.totalCost}</span></div>
+            `;
+
+            const waMsg = `Hi Sanmavi3D,%20Inquiry%20Ticket:%20${refNo}%20by%20${encodeURIComponent(name)}%20(${phone}).%20Material:%20${currentCalcState.material},%20Est.%20Price:%20RS${currentCalcState.totalCost}.`;
+            modalWaBtn.href = `https://api.whatsapp.com/send?phone=919767210276&text=${waMsg}`;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('quote-modal').classList.add('hidden');
+        }
+
+        // --- Three.js 3D Nozzle & Print Bed Simulation ---
+        function initThreeJsCanvas() {
+            const container = document.getElementById('three-container');
+            if (!container) return;
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Scene, Camera, Renderer
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050811);
+
+            const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            camera.position.set(6, 6, 8);
+            camera.lookAt(0, 0, 0);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Grid Helper (Print Bed)
+            const gridHelper = new THREE.GridHelper(8, 16, 0xff6b00, 0x1e293b);
+            scene.add(gridHelper);
+
+            // Heated Bed Plate Mesh
+            const bedGeo = new THREE.BoxGeometry(8, 0.2, 8);
+            const bedMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
+            const bed = new THREE.Mesh(bedGeo, bedMat);
+            bed.position.y = -0.1;
+            scene.add(bed);
+
+            // Printed Object Geometry (A glowing gear/cube wireframe structure)
+            const cubeGeo = new THREE.BoxGeometry(3, 2, 3);
+            const cubeEdges = new THREE.EdgesGeometry(cubeGeo);
+            const cubeMat = new THREE.LineBasicMaterial({ color: 0x00f2fe, linewidth: 2 });
+            const printedPart = new THREE.LineSegments(cubeEdges, cubeMat);
+            printedPart.position.y = 1;
+            scene.add(printedPart);
+
+            // Glowing Inner Solid Core
+            const coreGeo = new THREE.BoxGeometry(2.9, 1.9, 2.9);
+            const coreMat = new THREE.MeshStandardMaterial({ 
+                color: 0xff6b00, 
+                wireframe: true, 
+                transparent: true, 
+                opacity: 0.6 
+            });
+            const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+            coreMesh.position.y = 1;
+            scene.add(coreMesh);
+
+            // FDM Nozzle Assembly
+            const nozzleGroup = new THREE.Group();
+            
+            // Brass Nozzle Tip
+            const tipGeo = new THREE.ConeGeometry(0.3, 0.6, 16);
+            const tipMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.8, roughness: 0.2 });
+            const tip = new THREE.Mesh(tipGeo, tipMat);
+            tip.rotation.x = Math.PI;
+            nozzleGroup.add(tip);
+
+            // Heat Block
+            const blockGeo = new THREE.BoxGeometry(0.8, 0.6, 0.8);
+            const blockMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.9, roughness: 0.3 });
+            const block = new THREE.Mesh(blockGeo, blockMat);
+            block.position.y = 0.5;
+            nozzleGroup.add(block);
+
+            nozzleGroup.position.set(0, 2.3, 0);
+            scene.add(nozzleGroup);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xff6b00, 1.2);
+            dirLight.position.set(5, 10, 7);
+            scene.add(dirLight);
+
+            const pointLight = new THREE.PointLight(0x00f2fe, 1, 10);
+            pointLight.position.set(-3, 3, -3);
+            scene.add(pointLight);
+
+            // Mouse Interactive Rotation
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+            });
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaMove = {
+                        x: e.offsetX - previousMousePosition.x,
+                        y: e.offsetY - previousMousePosition.y
+                    };
+                    scene.rotation.y += deltaMove.x * 0.008;
+                    scene.rotation.x += deltaMove.y * 0.008;
+                }
+                previousMousePosition = { x: e.offsetX, y: e.offsetY };
+            });
+            window.addEventListener('mouseup', () => isDragging = false);
+
+            // Touch events for mobile
+            renderer.domElement.addEventListener('touchstart', (e) => {
+                if(e.touches.length === 1) {
+                    isDragging = true;
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+            renderer.domElement.addEventListener('touchmove', (e) => {
+                if (isDragging && e.touches.length === 1) {
+                    const deltaMove = {
+                        x: e.touches[0].clientX - previousMousePosition.x,
+                        y: e.touches[0].clientY - previousMousePosition.y
+                    };
+                    scene.rotation.y += deltaMove.x * 0.008;
+                    scene.rotation.x += deltaMove.y * 0.008;
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+            renderer.domElement.addEventListener('touchend', () => isDragging = false);
+
+            // Animation Loop
+            let clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+
+                const time = clock.getElapsedTime();
+
+                // Gentle nozzle toolpath motion
+                if (!isDragging) {
+                    scene.rotation.y += 0.004;
+                }
+                nozzleGroup.position.x = Math.sin(time * 2) * 1.2;
+                nozzleGroup.position.z = Math.cos(time * 1.5) * 1.2;
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // Responsive Canvas Resize
+            window.addEventListener('resize', () => {
+                if (!container) return;
+                const newW = container.clientWidth;
+                const newH = container.clientHeight;
+                camera.aspect = newW / newH;
+                camera.updateProjectionMatrix();
+                renderer.setSize(newW, newH);
+            });
+        }
+    </script>
+</body>
+</html>
